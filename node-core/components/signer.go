@@ -31,6 +31,7 @@ import (
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
 )
@@ -46,7 +47,7 @@ type BlsSignerInput struct {
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	privValListenAddr := cast.ToString(in.AppOpts.Get(beaconflags.PrivValidatorListenAddress))
 	if privValListenAddr != "" {
-		return signer.NewRemoteBLSSigner(privValListenAddr, "", nil)
+		return signer.NewRemoteBLSSigner(privValListenAddr, "beacond-2061", log.NewNopLogger())
 	}
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 		// if no private key is provided, use privval signer
