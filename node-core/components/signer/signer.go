@@ -22,13 +22,11 @@ package signer
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/types"
 )
@@ -48,29 +46,8 @@ func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
 	return &BLSSigner{PrivValidator: filePV}
 }
 
-func NewRemoteBLSSigner(listenAddr, chainID string, logger log.Logger) (*BLSSigner, error) {
-	pve, err := privval.NewSignerListener(listenAddr, logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start private validator: %w", err)
-	}
-
-	pvsc, err := privval.NewSignerClient(pve, chainID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start private validator: %w", err)
-	}
-
-	_, err = pvsc.GetPubKey()
-	if err != nil {
-		return nil, fmt.Errorf("can't get pubkey: %w", err)
-	}
-
-	const (
-		retries = 50 // 50 * 100ms = 5s total
-		timeout = 100 * time.Millisecond
-	)
-	pvscWithRetries := privval.NewRetrySignerClient(pvsc, retries, timeout)
-
-	return &BLSSigner{PrivValidator: pvscWithRetries}, nil
+func NewBLSSignerFromPrivVal(pv types.PrivValidator) *BLSSigner {
+	return &BLSSigner{PrivValidator: pv}
 }
 
 // ========================== Implements BLS Signer ==========================

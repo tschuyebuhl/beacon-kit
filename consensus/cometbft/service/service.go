@@ -44,6 +44,7 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
+	"github.com/cometbft/cometbft/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -373,4 +374,11 @@ func (s *Service) getContextForProposal(
 	newCtx, _ := finalState.Context().CacheContext()
 	// Preserve the CosmosSDK context while using the correct base ctx.
 	return newCtx.WithContext(ctx.Context())
+}
+
+func (s *Service) PrivValidator() types.PrivValidator {
+	if s.node == nil {
+		return nil
+	}
+	return s.node.PrivValidator()
 }

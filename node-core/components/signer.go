@@ -21,63 +21,65 @@
 package components
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
+	"errors"
 
 	"cosmossdk.io/depinject"
-	beaconflags "github.com/berachain/beacon-kit/cli/flags"
 	"github.com/berachain/beacon-kit/config"
 	"github.com/berachain/beacon-kit/node-core/components/signer"
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cast"
+	"github.com/cometbft/cometbft/types"
 )
 
 // BlsSignerInput is the input for the dep inject framework.
 type BlsSignerInput struct {
 	depinject.In
+	types.PrivValidator
 	AppOpts config.AppOptions
 	PrivKey LegacyKey `optional:"true"`
 }
 
-// ProvideBlsSigner is a function that provides the module to the application.
+// // ProvideBlsSigner is a function that provides the module to the application.
+// func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
+// 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
+// 		// if no private key is provided, use privval signer
+// 		homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
+// 		privValKeyFile := cast.ToString(
+// 			in.AppOpts.Get(beaconflags.PrivValidatorKeyFile),
+// 		)
+// 		privValStateFile := cast.ToString(
+// 			in.AppOpts.Get(beaconflags.PrivValidatorStateFile),
+// 		)
+// 		// If privValKeyFile is not an absolute path, join with homeDir
+// 		if !filepath.IsAbs(privValKeyFile) {
+// 			privValKeyFile = filepath.Join(homeDir, privValKeyFile)
+// 		}
+// 		// If privValStateFile is not an absolute path, join with homeDir
+// 		if !filepath.IsAbs(privValStateFile) {
+// 			privValStateFile = filepath.Join(homeDir, privValStateFile)
+// 		}
+
+// 		// Check key file existence here as the error in NewBLSSigner is vague.
+// 		if _, err := os.Stat(privValKeyFile); os.IsNotExist(err) {
+// 			return nil, fmt.Errorf("key file does not exist at path: %s", privValKeyFile)
+// 		}
+
+// 		// Check state file existence as the error in NewBLSSigner is vague.
+// 		if _, err := os.Stat(privValStateFile); os.IsNotExist(err) {
+// 			return nil, fmt.Errorf("state file does not exist at path: %s", privValStateFile)
+// 		}
+
+// 		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
+// 	}
+// 	return signer.NewLegacySigner(in.PrivKey)
+// }
+
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
-	privValListenAddr := cast.ToString(in.AppOpts.Get(beaconflags.PrivValidatorListenAddress))
-	if privValListenAddr != "" {
-		return signer.NewRemoteBLSSigner(privValListenAddr, "beacond-2061", log.NewNopLogger())
+	if in.PrivKey != [constants.BLSSecretKeyLength]byte{} {
+		return signer.NewLegacySigner(in.PrivKey)
 	}
-	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
-		// if no private key is provided, use privval signer
-		homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))
-		privValKeyFile := cast.ToString(
-			in.AppOpts.Get(beaconflags.PrivValidatorKeyFile),
-		)
-		privValStateFile := cast.ToString(
-			in.AppOpts.Get(beaconflags.PrivValidatorStateFile),
-		)
-		// If privValKeyFile is not an absolute path, join with homeDir
-		if !filepath.IsAbs(privValKeyFile) {
-			privValKeyFile = filepath.Join(homeDir, privValKeyFile)
-		}
-		// If privValStateFile is not an absolute path, join with homeDir
-		if !filepath.IsAbs(privValStateFile) {
-			privValStateFile = filepath.Join(homeDir, privValStateFile)
-		}
-
-		// Check key file existence here as the error in NewBLSSigner is vague.
-		if _, err := os.Stat(privValKeyFile); os.IsNotExist(err) {
-			return nil, fmt.Errorf("key file does not exist at path: %s", privValKeyFile)
-		}
-
-		// Check state file existence as the error in NewBLSSigner is vague.
-		if _, err := os.Stat(privValStateFile); os.IsNotExist(err) {
-			return nil, fmt.Errorf("state file does not exist at path: %s", privValStateFile)
-		}
-
-		return signer.NewBLSSigner(privValKeyFile, privValStateFile), nil
+	if in.PrivValidator == nil {
+		return nil, errors.New("priv-validator not available")
 	}
-	return signer.NewLegacySigner(in.PrivKey)
+	return signer.NewBLSSignerFromPrivVal(in.PrivValidator), nil
 }
