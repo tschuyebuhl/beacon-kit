@@ -78,6 +78,8 @@ const (
 	// BLS Config.
 	PrivValidatorKeyFile   = "priv_validator_key_file"
 	PrivValidatorStateFile = "priv_validator_state_file"
+
+	PrivValidatorListenAddrBeacond = "priv_validator_laddr_beacond"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
@@ -174,5 +176,10 @@ func AddBeaconKitFlags(startCmd *cobra.Command) {
 		NodeAPILogging,
 		defaultCfg.NodeAPI.Logging,
 		"node api logging",
+	)
+	startCmd.Flags().String(
+		PrivValidatorListenAddrBeacond,
+		"",
+		"beacond privval laddr",
 	)
 }

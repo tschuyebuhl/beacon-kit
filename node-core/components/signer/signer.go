@@ -22,6 +22,7 @@ package signer
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/berachain/beacon-kit/errors"
 	"github.com/berachain/beacon-kit/primitives/constants"
@@ -44,6 +45,32 @@ type BLSSigner struct {
 func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
 	filePV := privval.LoadFilePV(keyFilePath, stateFilePath)
 	return &BLSSigner{PrivValidator: filePV}
+}
+
+func NewBLSSignerPV(listenAddr, chainID string) (*BLSSigner, error) {
+	pve, err := privval.NewSignerListener(listenAddr, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start private validator: %w", err)
+	}
+
+	pvsc, err := privval.NewSignerClient(pve, chainID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start private validator: %w", err)
+	}
+
+	// try to get a pubkey from private validate first time
+	_, err = pvsc.GetPubKey()
+	if err != nil {
+		return nil, fmt.Errorf("can't get pubkey: %w", err)
+	}
+
+	const (
+		retries = 50 // 50 * 100ms = 5s total
+		timeout = 100 * time.Millisecond
+	)
+	pvscWithRetries := privval.NewRetrySignerClient(pvsc, retries, timeout)
+
+	return &BLSSigner{pvscWithRetries}, nil
 }
 
 // ========================== Implements BLS Signer ==========================
