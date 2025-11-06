@@ -44,6 +44,10 @@ type BlsSignerInput struct {
 
 // ProvideBlsSigner is a function that provides the module to the application.
 func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
+	privValListenAddr := cast.ToString(in.AppOpts.Get(beaconflags.PrivValidatorListenAddress))
+	if privValListenAddr != "" {
+		return signer.NewRemoteBLSSigner(privValListenAddr, "", nil)
+	}
 	if in.PrivKey == [constants.BLSSecretKeyLength]byte{} {
 		// if no private key is provided, use privval signer
 		homeDir := cast.ToString(in.AppOpts.Get(flags.FlagHome))

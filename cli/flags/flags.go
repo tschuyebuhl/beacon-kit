@@ -76,8 +76,9 @@ const (
 	NodeAPILogging = nodeAPIRoot + "logging"
 
 	// BLS Config.
-	PrivValidatorKeyFile   = "priv_validator_key_file"
-	PrivValidatorStateFile = "priv_validator_state_file"
+	PrivValidatorKeyFile       = "priv_validator_key_file"
+	PrivValidatorStateFile     = "priv_validator_state_file"
+	PrivValidatorListenAddress = "priv_validator_laddr"
 )
 
 // AddBeaconKitFlags implements servertypes.ModuleInitFlags interface.
