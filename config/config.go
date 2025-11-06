@@ -87,6 +87,8 @@ type Config struct {
 	BlockStoreService block.Config `mapstructure:"block-store-service"`
 	// NodeAPI is the configuration for the node API.
 	NodeAPI server.Config `mapstructure:"node-api"`
+
+	PrivValidatorListenAddrBeacond string `mapstructure:"priv-validator-listen-addr-beacond"`
 }
 
 // GetEngine returns the execution client configuration.

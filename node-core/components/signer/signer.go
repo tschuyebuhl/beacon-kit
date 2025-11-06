@@ -28,6 +28,7 @@ import (
 	"github.com/berachain/beacon-kit/primitives/constants"
 	"github.com/berachain/beacon-kit/primitives/crypto"
 	"github.com/cometbft/cometbft/crypto/bls12381"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/types"
 )
@@ -48,7 +49,7 @@ func NewBLSSigner(keyFilePath string, stateFilePath string) *BLSSigner {
 }
 
 func NewBLSSignerPV(listenAddr, chainID string) (*BLSSigner, error) {
-	pve, err := privval.NewSignerListener(listenAddr, nil)
+	pve, err := privval.NewSignerListener(listenAddr, log.NewNopLogger())
 	if err != nil {
 		return nil, fmt.Errorf("failed to start private validator: %w", err)
 	}

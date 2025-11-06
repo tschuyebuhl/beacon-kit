@@ -47,7 +47,8 @@ func ProvideBlsSigner(in BlsSignerInput) (crypto.BLSSigner, error) {
 	listenAddr := cast.ToString(
 		in.AppOpts.Get(beaconflags.PrivValidatorListenAddrBeacond),
 	)
-	if listenAddr == "" {
+	fmt.Println(listenAddr)
+	if listenAddr != "" {
 		return signer.NewBLSSignerPV(listenAddr, "beacond-2061")
 	}
 
